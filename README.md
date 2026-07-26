@@ -86,7 +86,7 @@ docker compose up -d --build
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://localhost:3800/v1",
+    base_url="http://localhost:3800/puter-api-proxy/v1",
     api_key="sk-puter-proxy",
 )
 
@@ -105,7 +105,7 @@ print(f"Model used: {resp.model}")
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: "http://localhost:3800/v1",
+  baseURL: "http://localhost:3800/puter-api-proxy/v1",
   apiKey: "sk-puter-proxy",
 });
 
@@ -120,7 +120,7 @@ console.log(resp.choices[0].message.content);
 ### curl
 
 ```bash
-curl http://localhost:3800/v1/chat/completions \
+curl http://localhost:3800/puter-api-proxy/v1/chat/completions \
   -H "Authorization: Bearer sk-puter-proxy" \
   -H "Content-Type: application/json" \
   -d '{
@@ -135,16 +135,16 @@ curl http://localhost:3800/v1/chat/completions \
 
 | Client | Setup |
 |--------|-------|
-| 🐍 **Python OpenAI SDK** | `base_url="http://localhost:3800/v1"` |
-| 📦 **Node.js OpenAI SDK** | `baseURL: "http://localhost:3800/v1"` |
-| 🦜 **LangChain** | `ChatOpenAI(base_url="http://localhost:3800/v1")` |
-| 💻 **Cursor** | Settings → OpenAI API Base → `http://localhost:3800/v1` |
-| 🔧 **Cline / Roo Code** | Provider: OpenAI Compatible, Base URL: `http://localhost:3800/v1` |
-| ▶️ **Continue** | `apiBase: http://localhost:3800/v1` |
-| 🛠️ **Aider** | `OPENAI_API_BASE=http://localhost:3800/v1 aider` |
-| 🤖 **Claude Code** | `ANTHROPIC_BASE_URL=http://localhost:3800 ANTHROPIC_AUTH_TOKEN=sk-puter-proxy claude` |
-| 📟 **Codex CLI** | `OPENAI_BASE_URL=http://localhost:3800/v1 OPENAI_API_KEY=sk-puter-proxy codex` |
-| ⚡ **Hermes** | `OPENAI_API_BASE=http://localhost:3800/v1 OPENAI_API_KEY=sk-puter-proxy hermes` |
+| 🐍 **Python OpenAI SDK** | `base_url="http://localhost:3800/puter-api-proxy/v1"` |
+| 📦 **Node.js OpenAI SDK** | `baseURL: "http://localhost:3800/puter-api-proxy/v1"` |
+| 🦜 **LangChain** | `ChatOpenAI(base_url="http://localhost:3800/puter-api-proxy/v1")` |
+| 💻 **Cursor** | Settings → OpenAI API Base → `http://localhost:3800/puter-api-proxy/v1` |
+| 🔧 **Cline / Roo Code** | Provider: OpenAI Compatible, Base URL: `http://localhost:3800/puter-api-proxy/v1` |
+| ▶️ **Continue** | `apiBase: http://localhost:3800/puter-api-proxy/v1` |
+| 🛠️ **Aider** | `OPENAI_API_BASE=http://localhost:3800/puter-api-proxy/v1 aider` |
+| 🤖 **Claude Code** | `ANTHROPIC_BASE_URL=http://localhost:3800/puter-api-proxy ANTHROPIC_AUTH_TOKEN=sk-puter-proxy claude` |
+| 📟 **Codex CLI** | `OPENAI_BASE_URL=http://localhost:3800/puter-api-proxy/v1 OPENAI_API_KEY=sk-puter-proxy codex` |
+| ⚡ **Hermes** | `OPENAI_API_BASE=http://localhost:3800/puter-api-proxy/v1 OPENAI_API_KEY=sk-puter-proxy hermes` |
 
 ---
 
@@ -191,7 +191,7 @@ These are tried first — your Puter allowance stays untouched:
 
 ## 📊 Dashboard
 
-Open **http://localhost:3800/dashboard** for:
+Open **http://localhost:3800/puter-api-proxy/dashboard** for:
 
 - 📈 Request volume chart (24h)
 - 🍩 Success rate donut chart
@@ -238,7 +238,7 @@ Open **http://localhost:3800/dashboard** for:
 
 ```bash
 # Change strategy via API
-curl -X POST http://localhost:3800/api/config \
+curl -X POST http://localhost:3800/puter-api-proxy/api/config \
   -H "Content-Type: application/json" \
   -d '{"strategy": "free_first"}'
 ```

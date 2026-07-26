@@ -12,7 +12,7 @@ export default function Playground({ config }) {
     setError(null);
     setResponse(null);
     try {
-      const res = await fetch("/v1/chat/completions", {
+      const res = await fetch("/puter-api-proxy/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer sk-puter-proxy" },
         body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }] }),

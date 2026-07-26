@@ -6,14 +6,14 @@ export default function Settings({ data, refresh }) {
   const [saved, setSaved] = useState(false);
 
   const saveStrategy = async () => {
-    await fetch("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ strategy }) });
+    await fetch("/puter-api-proxy/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ strategy }) });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
     refresh();
   };
 
   const clearCooldowns = async () => {
-    await fetch("/api/cooldowns/clear", { method: "POST" });
+    await fetch("/puter-api-proxy/api/cooldowns/clear", { method: "POST" });
     refresh();
   };
 

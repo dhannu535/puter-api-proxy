@@ -21,12 +21,12 @@ export default function App() {
   const fetchData = useCallback(async () => {
     try {
       const [stats, models, config, timeline, requests, health] = await Promise.all([
-        fetch("/api/stats").then((r) => r.json()),
-        fetch("/api/models").then((r) => r.json()),
-        fetch("/api/config").then((r) => r.json()),
-        fetch("/api/timeline").then((r) => r.json()),
-        fetch("/api/requests").then((r) => r.json()),
-        fetch("/api/health").then((r) => r.json()),
+        fetch("/puter-api-proxy/api/stats").then((r) => r.json()),
+        fetch("/puter-api-proxy/api/models").then((r) => r.json()),
+        fetch("/puter-api-proxy/api/config").then((r) => r.json()),
+        fetch("/puter-api-proxy/api/timeline").then((r) => r.json()),
+        fetch("/puter-api-proxy/api/requests").then((r) => r.json()),
+        fetch("/puter-api-proxy/api/health").then((r) => r.json()),
       ]);
       setData({ stats, models, config, timeline, requests, health });
     } catch (e) {

@@ -441,8 +441,12 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const path = url.pathname;
 
+  // Strip base path prefix for routing
+  const BASE = "/puter-api-proxy";
+  const route = path.startsWith(BASE) ? path.slice(BASE.length) || "/" : path;
+
   // Auth check for /v1 routes
-  if ((path.startsWith("/v1") || path === "/v1/messages") && API_KEY && API_KEY !== "none") {
+  if (route.startsWith("/v1") && API_KEY && API_KEY !== "none") {
     const token = parseAuth(req) || req.headers["x-api-key"] || "";
     if (token !== API_KEY) {
       return json(res, 401, { error: { message: "Invalid API key" } });
@@ -451,43 +455,43 @@ const server = createServer(async (req, res) => {
 
   try {
     // OpenAI-compatible API
-    if (path === "/v1/chat/completions" && req.method === "POST") {
+    if (route === "/v1/chat/completions" && req.method === "POST") {
       await handleChatCompletions(req, res);
-    } else if (path === "/v1/models" && req.method === "GET") {
+    } else if (route === "/v1/models" && req.method === "GET") {
       await handleModels(req, res);
     }
     // Anthropic Messages API (for Claude Code, Anthropic SDKs)
-    else if (path === "/v1/messages" && req.method === "POST") {
+    else if (route === "/v1/messages" && req.method === "POST") {
       await handleAnthropicMessages(req, res);
     }
     // Responses API (for Codex CLI)
-    else if (path === "/v1/responses" && req.method === "POST") {
+    else if (route === "/v1/responses" && req.method === "POST") {
       await handleResponses(req, res);
     }
     // Token counting (Anthropic compat)
-    else if (path === "/v1/messages/count_tokens" && req.method === "POST") {
+    else if (route === "/v1/messages/count_tokens" && req.method === "POST") {
       json(res, 200, { input_tokens: 0 });
     }
     // Dashboard API
-    else if (path === "/api/stats" && req.method === "GET") {
+    else if (route === "/api/stats" && req.method === "GET") {
       handleApiStats(req, res);
-    } else if (path === "/api/models" && req.method === "GET") {
+    } else if (route === "/api/models" && req.method === "GET") {
       handleApiModelStats(req, res);
-    } else if (path === "/api/timeline" && req.method === "GET") {
+    } else if (route === "/api/timeline" && req.method === "GET") {
       handleApiTimeline(req, res);
-    } else if (path === "/api/requests" && req.method === "GET") {
+    } else if (route === "/api/requests" && req.method === "GET") {
       handleApiRecentRequests(req, res);
-    } else if (path === "/api/health" && req.method === "GET") {
+    } else if (route === "/api/health" && req.method === "GET") {
       handleApiHealth(req, res);
-    } else if (path === "/api/config" && req.method === "GET") {
+    } else if (route === "/api/config" && req.method === "GET") {
       handleApiConfig(req, res);
-    } else if (path === "/api/config" && req.method === "POST") {
+    } else if (route === "/api/config" && req.method === "POST") {
       await handleApiConfigUpdate(req, res);
-    } else if (path === "/api/cooldowns/clear" && req.method === "POST") {
+    } else if (route === "/api/cooldowns/clear" && req.method === "POST") {
       handleApiClearCooldowns(req, res);
     }
     // Health check
-    else if (path === "/health" || path === "/") {
+    else if (route === "/health" || route === "/" || path === "/") {
       json(res, 200, {
         status: "ok",
         models: DEFAULT_FALLBACK_CHAIN.length,
@@ -497,8 +501,8 @@ const server = createServer(async (req, res) => {
       });
     }
     // Dashboard
-    else if (path.startsWith("/dashboard") || path === "/app") {
-      serveDashboard(req, res, path);
+    else if (route.startsWith("/dashboard")) {
+      serveDashboard(req, res, route);
     }
     // 404
     else {
@@ -511,22 +515,19 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`
-╔══════════════════════════════════════════════════════════════╗
-║          🚀 Puter API Proxy with Smart Routing              ║
-╠══════════════════════════════════════════════════════════════╣
-║                                                              ║
-║  API:        http://localhost:${PORT}/v1/chat/completions${" ".repeat(Math.max(0, 10 - String(PORT).length))}║
-║  Models:     http://localhost:${PORT}/v1/models${" ".repeat(Math.max(0, 20 - String(PORT).length))}║
-║  Dashboard:  http://localhost:${PORT}/dashboard${" ".repeat(Math.max(0, 18 - String(PORT).length))}║
-║                                                              ║
-║  API Key:    ${API_KEY}${" ".repeat(Math.max(0, 44 - API_KEY.length))}║
-║  Strategy:   ${router.strategy}${" ".repeat(Math.max(0, 44 - router.strategy.length))}║
-║  Fallback:   ${DEFAULT_FALLBACK_CHAIN.length} models in chain${" ".repeat(Math.max(0, 30 - String(DEFAULT_FALLBACK_CHAIN.length).length))}║
-║                                                              ║
-║  Your calls will NEVER fail - auto-fallback across all       ║
-║  ${DEFAULT_FALLBACK_CHAIN.length} models until one responds.${" ".repeat(Math.max(0, 35 - String(DEFAULT_FALLBACK_CHAIN.length).length))}║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════════╗
+║              🚀 Puter API Proxy with Smart Routing                    ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║                                                                       ║
+║  Base URL:   http://localhost:${PORT}/puter-api-proxy/v1               ║
+║  Dashboard:  http://localhost:${PORT}/puter-api-proxy/dashboard        ║
+║  Health:     http://localhost:${PORT}/puter-api-proxy/health           ║
+║                                                                       ║
+║  API Key:    ${API_KEY}                                               ║
+║  Strategy:   ${router.strategy}                                       ║
+║  Fallback:   ${DEFAULT_FALLBACK_CHAIN.length} models in chain                                  ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝
 `);
 });
 
