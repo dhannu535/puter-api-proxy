@@ -1,8 +1,10 @@
 # ⚡ Puter API Proxy
 
-**One endpoint. 146 models. Zero failures. $0 cost.**
+**One endpoint. 424 models. Smart fallback. Near-zero cost.**
 
-An OpenAI-compatible API proxy that gives you free access to 500+ AI models (GPT-5.6, Claude Opus 5, Gemini 3.5, Grok 4.5, DeepSeek V4, Qwen3, and more) through smart routing with automatic fallback. If one model fails, it instantly tries the next — your calls **never** fail.
+An OpenAI-compatible API proxy powered by [Puter.js](https://puter.com) that routes requests across 424 AI models (GPT-5.6, Claude Opus 5, Gemini 3.5, Grok 4.5, DeepSeek V4, Qwen3, and more) with automatic fallback. If one model fails, it instantly tries the next — up to 20 models per request across 4 cost tiers.
+
+**15 models are completely free** (via OpenRouter). The rest use your Puter account's monthly allowance. Default routing tries free models first to minimize cost.
 
 ---
 
