@@ -1,0 +1,31 @@
+{
+  "name": "puter-api-proxy",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "OpenAI-compatible API proxy with smart routing, auto-fallback across 500+ free AI models, admin dashboard, and Docker support. Powered by Puter.js.",
+  "scripts": {
+    "start": "node server/index.mjs",
+    "dev": "node server/index.mjs",
+    "dashboard:dev": "cd dashboard && npm run dev",
+    "dashboard:build": "cd dashboard && npm install && npm run build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker build -t puter-proxy ."
+  },
+  "keywords": [
+    "openai",
+    "api",
+    "proxy",
+    "llm",
+    "free",
+    "puter",
+    "ai",
+    "fallback",
+    "routing"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@heyputer/puter.js": "^2",
+    "dotenv": "^17.4.2"
+  }
+}
