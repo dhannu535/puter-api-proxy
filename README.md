@@ -281,6 +281,19 @@ puter-api-proxy/
 
 ---
 
+## 🤝 Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+**Good first issues:**
+- Add new models to the catalog as Puter adds them
+- Add `/v1/embeddings` endpoint
+- Improve dashboard charts
+- Add tests
+- Write tutorials for more clients
+
+---
+
 ## 📝 License
 
 [MIT](https://github.com/dhannu535/puter-api-proxy/blob/main/LICENSE)
