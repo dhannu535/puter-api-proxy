@@ -56,11 +56,15 @@ cp .env.example .env
 npm start
 ```
 
-Your proxy is live at `http://localhost:3800` 🎉
+Your proxy is live at `http://localhost:3800/puter-api-proxy` 🎉
 
 ---
 
-## 🐳 Docker
+## 🐳 Docker / Podman
+
+Works with both [Docker](https://docs.docker.com/) and [Podman](https://podman.io/docs).
+
+### Docker
 
 ```bash
 # Start
@@ -74,6 +78,57 @@ docker compose down
 
 # Rebuild after changes
 docker compose up -d --build
+```
+
+### Podman
+
+```bash
+# Build the image
+podman build -t puter-proxy .
+
+# Run the container
+podman run -d \
+  --name puter-proxy \
+  -p 3800:3800 \
+  -e PUTER_AUTH_TOKEN=your-token-here \
+  -e API_KEY=sk-puter-proxy \
+  puter-proxy
+
+# View logs
+podman logs -f puter-proxy
+
+# Stop & remove
+podman stop puter-proxy && podman rm puter-proxy
+```
+
+### Podman Compose
+
+```bash
+# If you have podman-compose installed
+podman-compose up -d
+
+# Or use podman with docker-compose compatibility
+podman compose up -d
+
+# Stop
+podman compose down
+```
+
+### Podman Pod (advanced)
+
+```bash
+# Create a pod
+podman pod create --name puter-pod -p 3800:3800
+
+# Run inside the pod
+podman run -d --pod puter-pod \
+  --name puter-proxy \
+  -e PUTER_AUTH_TOKEN=your-token-here \
+  -e API_KEY=sk-puter-proxy \
+  puter-proxy
+
+# Check status
+podman pod ps
 ```
 
 ---
@@ -247,18 +302,20 @@ curl -X POST http://localhost:3800/puter-api-proxy/api/config \
 
 ## 📡 API Endpoints
 
+All endpoints are prefixed with `/puter-api-proxy`:
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/v1/chat/completions` | POST | OpenAI chat completions |
-| `/v1/messages` | POST | Anthropic Messages API (Claude Code) |
-| `/v1/responses` | POST | Responses API (Codex CLI) |
-| `/v1/models` | GET | List all 424 available models |
-| `/health` | GET | Health check + uptime |
-| `/dashboard` | GET | Admin dashboard UI |
-| `/api/stats` | GET | Analytics summary |
-| `/api/models` | GET | Per-model performance stats |
-| `/api/config` | GET/POST | View/update routing config |
-| `/api/cooldowns/clear` | POST | Reset all model cooldowns |
+| `/puter-api-proxy/v1/chat/completions` | POST | OpenAI chat completions |
+| `/puter-api-proxy/v1/messages` | POST | Anthropic Messages API (Claude Code) |
+| `/puter-api-proxy/v1/responses` | POST | Responses API (Codex CLI) |
+| `/puter-api-proxy/v1/models` | GET | List all 424 available models |
+| `/puter-api-proxy/health` | GET | Health check + uptime |
+| `/puter-api-proxy/dashboard` | GET | Admin dashboard UI |
+| `/puter-api-proxy/api/stats` | GET | Analytics summary |
+| `/puter-api-proxy/api/models` | GET | Per-model performance stats |
+| `/puter-api-proxy/api/config` | GET/POST | View/update routing config |
+| `/puter-api-proxy/api/cooldowns/clear` | POST | Reset all model cooldowns |
 
 ---
 
