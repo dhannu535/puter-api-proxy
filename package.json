@@ -2,7 +2,7 @@
   "name": "puter-api-proxy",
   "version": "2.0.0",
   "type": "module",
-  "description": "OpenAI-compatible API proxy with smart routing, auto-fallback across 500+ free AI models, admin dashboard, and Docker support. Powered by Puter.js.",
+  "description": "OpenAI-compatible API proxy with smart routing, auto-fallback across 424 AI models, admin dashboard, Docker/Podman support. Powered by Puter.js.",
   "scripts": {
     "start": "node server/index.mjs",
     "dev": "node server/index.mjs",
@@ -10,7 +10,13 @@
     "dashboard:build": "cd dashboard && npm install && npm run build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:build": "docker build -t puter-proxy ."
+    "docker:build": "docker build -t puter-proxy .",
+    "podman:build": "podman build -t puter-proxy .",
+    "podman:run": "podman run -d --name puter-proxy -p 3800:3800 --env-file .env puter-proxy",
+    "podman:stop": "podman stop puter-proxy && podman rm puter-proxy",
+    "podman:logs": "podman logs -f puter-proxy",
+    "podman:up": "podman compose up -d",
+    "podman:down": "podman compose down"
   },
   "keywords": [
     "openai",

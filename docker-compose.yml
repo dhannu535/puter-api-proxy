@@ -1,15 +1,16 @@
 services:
   puter-proxy:
     build: .
+    container_name: puter-proxy
     ports:
       - "${PORT:-3800}:3800"
+    env_file:
+      - .env
     environment:
-      - PUTER_AUTH_TOKEN=${PUTER_AUTH_TOKEN}
-      - API_KEY=${API_KEY:-sk-puter-proxy}
       - PORT=3800
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3800/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3800/puter-api-proxy/health"]
       interval: 30s
       timeout: 10s
       retries: 3
