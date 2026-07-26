@@ -322,4 +322,3 @@ MIT
 
 - **[Puter.js](https://puter.com)** — Free AI gateway to 500+ models
 - **[OpenRouter](https://openrouter.ai)** — Free tier models
-- Inspired by **[FreeLLMAPI](https://github.com/tashfeenahmed/freellmapi)**

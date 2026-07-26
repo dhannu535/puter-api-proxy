@@ -55,7 +55,7 @@ function json(res, status, data) {
   res.writeHead(status, {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, anthropic-version, anthropic-beta",
   });
   res.end(body);
 }
@@ -233,6 +233,167 @@ function handleApiClearCooldowns(req, res) {
   json(res, 200, { ok: true, message: "All cooldowns cleared" });
 }
 
+// --- Anthropic Messages API (Claude Code, Anthropic SDKs) ---
+async function handleAnthropicMessages(req, res) {
+  const body = await readBody(req);
+  const { model, messages, system, max_tokens, temperature, top_p, stream, tools, tool_choice } = body;
+
+  // Convert Anthropic format to OpenAI format
+  const openaiMessages = [];
+  if (system) {
+    openaiMessages.push({ role: "system", content: typeof system === "string" ? system : system.map(b => b.text).join("\n") });
+  }
+  for (const msg of (messages || [])) {
+    openaiMessages.push({
+      role: msg.role,
+      content: typeof msg.content === "string" ? msg.content : msg.content.map(b => b.text || "").join(""),
+    });
+  }
+
+  const id = `msg_${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+
+  if (stream) {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "Access-Control-Allow-Origin": "*",
+    });
+
+    try {
+      const result = await router.routeChat(openaiMessages, { model: model || "auto", stream: true, temperature, max_tokens, top_p, tools, tool_choice });
+      const response = result.response;
+
+      // message_start
+      sseChunk(res, { type: "message_start", message: { id, type: "message", role: "assistant", model: result.model, content: [], usage: { input_tokens: 0, output_tokens: 0 } } });
+      sseChunk(res, { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } });
+
+      if (response && typeof response[Symbol.asyncIterator] === "function") {
+        for await (const chunk of response) {
+          const text = chunk?.text || chunk?.message?.content || "";
+          if (text) {
+            sseChunk(res, { type: "content_block_delta", index: 0, delta: { type: "text_delta", text } });
+          }
+        }
+      } else {
+        const text = extractContent(response);
+        sseChunk(res, { type: "content_block_delta", index: 0, delta: { type: "text_delta", text } });
+      }
+
+      sseChunk(res, { type: "content_block_stop", index: 0 });
+      sseChunk(res, { type: "message_delta", delta: { stop_reason: "end_turn" }, usage: { output_tokens: 0 } });
+      sseChunk(res, { type: "message_stop" });
+    } catch (err) {
+      sseChunk(res, { type: "error", error: { type: "api_error", message: err.message } });
+    }
+    res.end();
+  } else {
+    try {
+      const result = await router.routeChat(openaiMessages, { model: model || "auto", temperature, max_tokens, top_p, tools, tool_choice });
+      const content = extractContent(result.response);
+
+      json(res, 200, {
+        id,
+        type: "message",
+        role: "assistant",
+        model: result.model,
+        content: [{ type: "text", text: content }],
+        stop_reason: "end_turn",
+        stop_sequence: null,
+        usage: { input_tokens: 0, output_tokens: 0 },
+      });
+    } catch (err) {
+      json(res, 500, { type: "error", error: { type: "api_error", message: err.message } });
+    }
+  }
+}
+
+// --- Responses API (Codex CLI) ---
+async function handleResponses(req, res) {
+  const body = await readBody(req);
+  const { model, input, instructions, stream, temperature, max_output_tokens } = body;
+
+  // Convert responses format to messages
+  const messages = [];
+  if (instructions) {
+    messages.push({ role: "system", content: instructions });
+  }
+
+  // input can be a string or array of message objects
+  if (typeof input === "string") {
+    messages.push({ role: "user", content: input });
+  } else if (Array.isArray(input)) {
+    for (const item of input) {
+      if (typeof item === "string") {
+        messages.push({ role: "user", content: item });
+      } else if (item.role && item.content) {
+        messages.push({ role: item.role, content: typeof item.content === "string" ? item.content : item.content.map(b => b.text || b.input || "").join("") });
+      }
+    }
+  }
+
+  const id = `resp_${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+
+  if (stream) {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "Access-Control-Allow-Origin": "*",
+    });
+
+    try {
+      const result = await router.routeChat(messages, { model: model || "auto", stream: true, temperature, max_tokens: max_output_tokens });
+      const response = result.response;
+
+      // response.created
+      sseChunk(res, { type: "response.created", response: { id, object: "response", status: "in_progress", model: result.model, output: [] } });
+      sseChunk(res, { type: "response.output_item.added", output_index: 0, item: { type: "message", role: "assistant", content: [] } });
+      sseChunk(res, { type: "response.content_part.added", output_index: 0, content_index: 0, part: { type: "output_text", text: "" } });
+
+      if (response && typeof response[Symbol.asyncIterator] === "function") {
+        for await (const chunk of response) {
+          const text = chunk?.text || chunk?.message?.content || "";
+          if (text) {
+            sseChunk(res, { type: "response.output_text.delta", output_index: 0, content_index: 0, delta: text });
+          }
+        }
+      } else {
+        const text = extractContent(response);
+        sseChunk(res, { type: "response.output_text.delta", output_index: 0, content_index: 0, delta: text });
+      }
+
+      sseChunk(res, { type: "response.output_text.done", output_index: 0, content_index: 0, text: "" });
+      sseChunk(res, { type: "response.content_part.done", output_index: 0, content_index: 0, part: { type: "output_text", text: "" } });
+      sseChunk(res, { type: "response.output_item.done", output_index: 0, item: { type: "message", role: "assistant" } });
+      sseChunk(res, { type: "response.completed", response: { id, object: "response", status: "completed", model: result.model } });
+    } catch (err) {
+      sseChunk(res, { type: "error", error: { message: err.message } });
+    }
+    res.end();
+  } else {
+    try {
+      const result = await router.routeChat(messages, { model: model || "auto", temperature, max_tokens: max_output_tokens });
+      const content = extractContent(result.response);
+
+      json(res, 200, {
+        id,
+        object: "response",
+        status: "completed",
+        model: result.model,
+        output: [{
+          type: "message",
+          role: "assistant",
+          content: [{ type: "output_text", text: content }],
+        }],
+        usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+      });
+    } catch (err) {
+      json(res, 500, { error: { message: err.message } });
+    }
+  }
+}
+
 // --- Static file serving for dashboard ---
 function serveDashboard(req, res, urlPath) {
   const dashboardDir = resolve(import.meta.dirname, "../dashboard/dist");
@@ -272,7 +433,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, anthropic-version, anthropic-beta",
     });
     return res.end();
   }
@@ -280,9 +441,9 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const path = url.pathname;
 
-  // Auth check for /v1 routes only
-  if (path.startsWith("/v1") && API_KEY && API_KEY !== "none") {
-    const token = parseAuth(req);
+  // Auth check for /v1 routes
+  if ((path.startsWith("/v1") || path === "/v1/messages") && API_KEY && API_KEY !== "none") {
+    const token = parseAuth(req) || req.headers["x-api-key"] || "";
     if (token !== API_KEY) {
       return json(res, 401, { error: { message: "Invalid API key" } });
     }
@@ -294,6 +455,18 @@ const server = createServer(async (req, res) => {
       await handleChatCompletions(req, res);
     } else if (path === "/v1/models" && req.method === "GET") {
       await handleModels(req, res);
+    }
+    // Anthropic Messages API (for Claude Code, Anthropic SDKs)
+    else if (path === "/v1/messages" && req.method === "POST") {
+      await handleAnthropicMessages(req, res);
+    }
+    // Responses API (for Codex CLI)
+    else if (path === "/v1/responses" && req.method === "POST") {
+      await handleResponses(req, res);
+    }
+    // Token counting (Anthropic compat)
+    else if (path === "/v1/messages/count_tokens" && req.method === "POST") {
+      json(res, 200, { input_tokens: 0 });
     }
     // Dashboard API
     else if (path === "/api/stats" && req.method === "GET") {
