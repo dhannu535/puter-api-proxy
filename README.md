@@ -200,6 +200,20 @@ Open **http://localhost:3800/dashboard** for:
 - 📜 Request log with routing details
 - ⚙️ Strategy picker & configuration
 
+### Screenshots
+
+**Overview** — Stats, charts, quick start guide
+![Dashboard Overview](screenshots/dashboard-overview.png)
+
+**Models** — All 146 models across 4 tiers with health status
+![Models](screenshots/dashboard-models.png)
+
+**Playground** — Test any model with live routing info
+![Playground](screenshots/dashboard-playground.png)
+
+**Analytics** — Success rate, leaderboard, request log
+![Analytics](screenshots/dashboard-analytics.png)
+
 ---
 
 ## ⚙️ Configuration
