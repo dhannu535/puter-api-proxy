@@ -283,4 +283,4 @@ puter-api-proxy/
 
 ## 📝 License
 
-MIT
+[MIT](https://github.com/dhannu535/puter-api-proxy/blob/main/LICENSE)
