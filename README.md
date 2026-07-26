@@ -320,7 +320,6 @@ MIT
 
 ---
 
-## 🙏 Credits
+## 📝 License
 
-- **[Puter.js](https://puter.com)** — Free AI gateway to 500+ models
-- **[OpenRouter](https://openrouter.ai)** — Free tier models
+MIT
